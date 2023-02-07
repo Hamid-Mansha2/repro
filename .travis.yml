@@ -80,6 +80,5 @@ deploy:
 - provider: script
   script: "${BLT_TRAVIS_DIR}/scripts/deploy_tag"
   skip_cleanup: true
-  'on':
-    tags: true
+  
     php: '8.0'
