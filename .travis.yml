@@ -60,25 +60,3 @@ deploy:
 - provider: script
   script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
   skip_cleanup: true
-  
-    php: '8.0'
-- provider: script
-  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
-  skip_cleanup: true
-  
-    php: '8.0'
-- provider: script
-  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
-  skip_cleanup: true
-  
-    php: '8.0'
-- provider: script
-  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
-  skip_cleanup: true
-  
-    php: '8.0'
-- provider: script
-  script: "${BLT_TRAVIS_DIR}/scripts/deploy_tag"
-  skip_cleanup: true
-  
-    php: '8.0'
