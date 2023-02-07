@@ -1,1 +1,93 @@
-
+---
+language: php
+os:
+- linux
+dist: xenial
+php:
+- '8.0'
+jobs:
+  fast_finish: true
+env:
+  global:
+  - COMPOSER_BIN: "$TRAVIS_BUILD_DIR/vendor/bin"
+  - BLT_TRAVIS_DIR: "$TRAVIS_BUILD_DIR/vendor/acquia/blt-travis"
+cache:
+  directories:
+  - "$HOME/.composer/cache"
+  - "$HOME/.drush/cache"
+  - "$HOME/.npm"
+  - "$HOME/.nvm"
+  - ".rules"
+  - docroot/themes/custom/bootstrap_padi/node_modules
+  - docroot/themes/custom/bootstrap_padi/pattern-lab/node_modules
+services:
+- mysql
+addons:
+  ssh_known_hosts:
+  - svn-23450.prod.hosting.acquia.com
+  chrome: stable
+notifications:
+  slack:
+  - rooms:
+    - secure: 75zBsfSc3q9gvRtVn4lKNsqi6wPhCq0dsny0XVrzr+3XS480CvLHUDfcf0JX2uP0NjThnLU1SsSuKSQz3zlqLAxUvVlBqG+rVMUBXYJlyt8X/JmOJCshjyGrPfEav32+VJWYhZpuW51aJxkllJMoLK9FZuxEKu11ZtWFL1CQnbSD0aTXCa17NjGN6cEIJpbQlg9bRzIb3XTiaSAQ2p9tB1N2FsoOaVKdhcovPWwmnVwfHta5Uq66jC/y7ZTs5bQ9AbctKfUJuhHio8lLHCskTM+Tznhves9nbV8pcHa9EnuoOUz35TN4Nnq4YvmEVMm0yJjSgjjDfT9S0w/X1hOHjmEUU7v81hnD8qmZuyB0jm9HLWOOFFMhEQBV3Z1J2N/kaPHKuToxL3N8RWTE9+HKXBtlGqFhTmJ1p7EQbzl5ADwjNJOlhQnzUovrP3fGuH6UL/P5i/Wf+s3TufeTa2POkXxvsc2HX+8BclkP6Lpz6bcCoeYohBPQjgFKGRhg1GfF+tzZF0MtIC65O0sZDj5+KoXANi9okjN5wX5nw014XXntqpW0qfdz/zZY0RhYxkZqZ0bzY5VVBwOSy7KMHYm6jj0rlRNNbOIDq46H1+SOfii6ZkKz/Y4zt/g9+d9oAPL/nLL1Zs86LkYbxTkI29PHcbq9Ir2oVehH5D2gcp5KDSY=
+    template:
+    - "Repo: padi-blt\nBuild: <%{build_url}|#%{build_number}> (%{duration}) / Commit:
+      <%{compare_url}|%{commit}> *%{message}* \n%{author}: %{branch} \n%{commit_message}"
+before_install:
+- phpenv config-rm xdebug.ini
+- nvm install 14
+- nvm use 14
+- cp .travis/.npmrc docroot/themes/custom/bootstrap_padi/
+- cp .travis/config.json $HOME/.composer/
+- composer self-update
+- composer config --global http-basic.padi.jfrog.io $JFROG_BUILD_USERNAME $JFROG_BUILD_KEY
+- composer validate --no-check-all --ansi
+- composer install --prefer-dist
+- source ${BLT_TRAVIS_DIR}/scripts/exit_early
+install:
+- source ${BLT_TRAVIS_DIR}/scripts/setup_environment
+- source ${BLT_TRAVIS_DIR}/scripts/setup_project
+before_script:
+- phpenv config-add .travis/php.ini
+script:
+- blt blt:telemetry:disable --no-interaction
+- source ${BLT_TRAVIS_DIR}/scripts/run_tests
+- rm -f docroot/themes/custom/bootstrap_padi/.npmrc
+- rm LICENSE.chromedriver
+- source scripts/deployment-version.sh
+- source ${BLT_TRAVIS_DIR}/scripts/simulate_deploy
+deploy:
+- provider: script
+  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
+  skip_cleanup: true
+  'on':
+    branch:
+    - develop
+    php: '8.0'
+- provider: script
+  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
+  skip_cleanup: true
+  'on':
+    branch:
+    - develop-clint
+    php: '8.0'
+- provider: script
+  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
+  skip_cleanup: true
+  'on':
+    branch:
+    - develop-ej
+    php: '8.0'
+- provider: script
+  script: "${BLT_TRAVIS_DIR}/scripts/deploy_branch"
+  skip_cleanup: true
+  'on':
+    branch:
+    - master
+    php: '8.0'
+- provider: script
+  script: "${BLT_TRAVIS_DIR}/scripts/deploy_tag"
+  skip_cleanup: true
+  'on':
+    tags: true
+    php: '8.0'
